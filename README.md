@@ -1,5 +1,7 @@
 # Using the Boehm GC from Rust
 
+[![Build Status](https://travis-ci.org/huonw/boehm-rs.png)](https://travis-ci.org/huonw/boehm-rs)
+
 A very basic wrapper that provides a `Gc<T>` type, implemented by
 binding to the
 [Boehm-Demers-Weiser garbage collector](http://www.hpl.hp.com/personal/Hans_Boehm/gc/). See
