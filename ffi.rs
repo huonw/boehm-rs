@@ -23,6 +23,8 @@ pub type GC_stack_base_func =
         -> *mut c_void;
 pub type GC_has_static_roots_func =
     extern "C" fn(arg1: *c_schar, arg2: *mut c_void, arg3: size_t) -> c_int;
+pub type GC_bitmap = *mut GC_word;
+pub type GC_descr = GC_word;
 #[link(name = "gc")]
 extern "C" {
     pub static mut GC_gc_no: GC_word;
@@ -227,4 +229,12 @@ extern "C" {
     pub fn GC_set_force_unmap_on_gcollect(arg1: c_int);
     pub fn GC_get_force_unmap_on_gcollect() -> c_int;
     pub fn GC_win32_free_heap();
+    pub fn GC_make_descriptor(arg1: GC_bitmap, arg2: size_t) -> GC_descr;
+    pub fn GC_malloc_explicitly_typed(arg1: size_t, arg2: GC_descr) ->
+     *mut c_void;
+    pub fn GC_malloc_explicitly_typed_ignore_off_page(arg1: size_t,
+                                                      arg2: GC_descr) ->
+     *mut c_void;
+    pub fn GC_calloc_explicitly_typed(arg1: size_t, arg2: size_t,
+                                      arg3: GC_descr) -> *mut c_void;
 }

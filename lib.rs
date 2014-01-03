@@ -1,12 +1,14 @@
 #[crate_id="boehm#0.1"];
 #[crate_type="lib"];
-#[feature(globs)];
+#[feature(globs, macro_rules)];
 
 use std::{libc, mem};
 use std::unstable::intrinsics;
 
 #[allow(dead_code)]
 pub mod ffi;
+
+pub mod tracing;
 
 /// Initialise the GC. This should be called before using any other
 /// functions and on the main thread for maximum portability (some
