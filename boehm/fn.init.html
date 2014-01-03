@@ -21,7 +21,7 @@
     <section class="sidebar">
         
 
-        <p class='location'><a href='index.html'>boehm</a></p><div class='block mod'><h2>Modules</h2><a class='mod ' href='ffi/index.html'>ffi</a><br/></div><div class='block struct'><h2>Structs</h2><a class='struct ' href='struct.Gc.html'>Gc</a><br/></div><div class='block fn'><h2>Functions</h2><a class='fn ' href='fn.collect.html'>collect</a><br/><a class='fn ' href='fn.heap_size.html'>heap_size</a><br/><a class='fn current' href='fn.init.html'>init</a><br/></div>
+        <p class='location'><a href='index.html'>boehm</a></p><div class='block mod'><h2>Modules</h2><a class='mod ' href='ffi/index.html'>ffi</a><br/><a class='mod ' href='tracing/index.html'>tracing</a><br/></div><div class='block struct'><h2>Structs</h2><a class='struct ' href='struct.Gc.html'>Gc</a><br/></div><div class='block fn'><h2>Functions</h2><a class='fn ' href='fn.collect.html'>collect</a><br/><a class='fn ' href='fn.debug_dump.html'>debug_dump</a><br/><a class='fn ' href='fn.heap_size.html'>heap_size</a><br/><a class='fn current' href='fn.init.html'>init</a><br/></div>
     </section>
 
     <nav class="sub">
@@ -37,7 +37,7 @@
     </nav>
 
     <section id='main' class="content fn"><a class='source'
-                       href='../src/boehm/up/rust-boehm/lib.rs.html#18-20'>[src]</a><h1 class='fqn'>Function <a href='index.html'>boehm</a>::<a class='fn' href=''>init</a></h1><pre class='fn'>pub fn init()</pre><div class='docblock'><p>Initialise the GC. This should be called before using any other
+                       href='../src/boehm/up/rust-boehm/lib.rs.html#20-22'>[src]</a><h1 class='fqn'>Function <a href='index.html'>boehm</a>::<a class='fn' href=''>init</a></h1><pre class='fn'>pub fn init()</pre><div class='docblock'><p>Initialise the GC. This should be called before using any other
 functions and on the main thread for maximum portability (some
 platforms don&#39;t require this to be called at all).</p>
 
