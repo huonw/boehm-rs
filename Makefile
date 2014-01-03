@@ -1,6 +1,6 @@
 include rust.mk
 RUSTC ?= rustc
-RUSTFLAGS ?= -O
+RUSTFLAGS ?= -O --out-dir .
 EG=examples
 
 .PHONY: all examples
