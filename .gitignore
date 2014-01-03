@@ -1,5 +1,7 @@
 example
 lowlevel_example
+tracing_example
+tracing_example_conservative
 *.so
 *.d
 *.s
