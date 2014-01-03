@@ -2,10 +2,11 @@
 
 [![Build Status](https://travis-ci.org/huonw/boehm-rs.png)](https://travis-ci.org/huonw/boehm-rs)
 
-A very basic wrapper that provides a `Gc<T>` type, implemented by
-binding to the
+A basic wrapper that provides `Gc<T>` and `GcTracing<T>` types
+(completely conservative and precise-on-heap respectively),
+implemented by binding to the
 [Boehm-Demers-Weiser garbage collector](http://www.hpl.hp.com/personal/Hans_Boehm/gc/). See
-`example.rs` and `lowlevel_example.rs` for some examples.
+`examples/` for some examples.
 
 ## Warning
 
@@ -40,10 +41,16 @@ time I've been able to allocate (no pun intended) to this so far.
 ## Todo
 
 - Fix the above
+- Stop generating the Boehm type-descriptor for each type on every
+  allocation (requires compiler support to do properly, but we could
+  cache based on the address of the (Rust) type descriptor, or
+  something)
+
+## Todo-done
 - Use
   [the typed inferface](http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc_typedh.txt)
   for more precise collection (at the very least, working out a way to
-  use malloc_atomic where appropriate would be good)
+  use malloc_atomic where appropriate would be good). See [`boehm::tracing`](http://huonw.github.io/boehm-rs/boehm/tracing/index.html).
 
 ## License
 
