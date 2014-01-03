@@ -29,6 +29,11 @@ pub fn collect() {
     unsafe { ffi::GC_gcollect(); }
 }
 
+/// Dump some debugging/diagnostic information to stdout.
+pub fn debug_dump() {
+    unsafe { ffi::GC_dump(); }
+}
+
 /// A garbage collected pointer.
 #[no_send]
 #[deriving(Clone)]
@@ -39,7 +44,12 @@ pub struct Gc<T> {
 impl<T: 'static> Gc<T> {
     pub fn new(value: T) -> Gc<T> {
         unsafe {
-            let p = ffi::GC_malloc(mem::size_of::<T>() as libc::size_t) as *mut T;
+            let size = mem::size_of::<T>() as libc::size_t;
+            let p = if cfg!(debug) {
+                ffi::GC_debug_malloc(size, bytes!("Gc", 0).as_ptr() as *i8, 0)
+            } else {
+                ffi::GC_malloc(size)
+            } as *mut T;
             if p.is_null() {
                 fail!("Could not allocate")
             }
