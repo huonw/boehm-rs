@@ -1,8 +1,9 @@
 #[crate_id="boehm#0.1"];
-#[crate_type="lib"];
+#[crate_type="rlib"];
 #[feature(globs, macro_rules)];
 
 use std::{libc, mem};
+use std::kinds::marker;
 use std::unstable::intrinsics;
 
 #[allow(dead_code)]
@@ -37,10 +38,10 @@ pub fn debug_dump() {
 }
 
 /// A garbage collected pointer.
-#[no_send]
 #[deriving(Clone)]
 pub struct Gc<T> {
-    priv ptr: *mut T
+    priv ptr: *mut T,
+    priv mark: marker::NoSend
 }
 
 impl<T: 'static> Gc<T> {
@@ -56,7 +57,7 @@ impl<T: 'static> Gc<T> {
                 fail!("Could not allocate")
             }
             intrinsics::move_val_init(&mut *p, value);
-            Gc { ptr: p }
+            Gc { ptr: p, mark: marker::NoSend }
         }
     }
 

@@ -7,6 +7,7 @@
 use ffi;
 use ffi::GC_word;
 use std::{mem, vec, libc};
+use std::kinds::marker;
 use std::unstable::intrinsics;
 
 // macros from gc_typed.h
@@ -56,10 +57,10 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
 /// things could possibly be pointers, and what can just be ignored.
 ///
 /// That is, run Boehm in precise-on-the-heap mode.
-#[no_send]
 #[deriving(Clone)]
 pub struct GcTracing<T> {
     priv ptr: *mut T,
+    priv mark: marker::NoSend
     //priv force_managed: Option<@()>
 }
 
@@ -87,6 +88,7 @@ impl<T: BoehmTraced> GcTracing<T> {
             intrinsics::move_val_init(&mut *p, value);
             GcTracing {
                 ptr: p,
+                mark: marker::NoSend
                 //force_managed: None
             }
         }

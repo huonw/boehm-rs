@@ -7,13 +7,13 @@ _rust_crate_lib = $$(_rust_crate_dir)lib.rs
 _rust_crate_test = $$(_rust_crate_dir)test.rs
 
 _rust_crate_name = $$(shell $(RUSTC) --crate-name $$(_rust_crate_lib))
-_rust_crate_dylib = $$(shell $(RUSTC) --crate-file-name --lib $$(_rust_crate_lib))
+_rust_crate_dylib = $$(shell $(RUSTC) --crate-file-name --crate-type lib $$(_rust_crate_lib))
 
 .PHONY : $$(_rust_crate_name)
 $$(_rust_crate_name) : $$(_rust_crate_dylib)
 
 $$(_rust_crate_dylib) : $$(_rust_crate_lib)
-	$$(RUSTC) $$(RUSTFLAGS) --dep-info --lib $$<
+	$$(RUSTC) $$(RUSTFLAGS) --dep-info --crate-type lib $$<
 
 -include $$(patsubst %.rs,%.d,$$(_rust_crate_lib))
 
