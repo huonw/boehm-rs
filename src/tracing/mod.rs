@@ -6,9 +6,9 @@
 
 use ffi;
 use ffi::GC_word;
-use std::{mem, vec, libc};
+use std::{mem, libc};
 use std::kinds::marker;
-use std::unstable::intrinsics;
+use std::intrinsics;
 
 // macros from gc_typed.h
 
@@ -38,7 +38,7 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
         ($cmprs:expr) => { {
             let mut compressed = $cmprs;
             for (word_idx, &is_ptr) in bitmap.iter().enumerate() {
-                if is_ptr { GC_set_bit(compressed, word_idx) }
+                if is_ptr { GC_set_bit(compressed.as_mut_slice(), word_idx) }
             }
             unsafe {
                 ffi::GC_make_descriptor(compressed.as_mut_ptr(), l as GC_word)
@@ -49,7 +49,7 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
     if l < wrd_sz * 2 {
         go!([0 as GC_word, .. 2])
     } else {
-        go!(vec::from_elem((l + wrd_sz - 1) / wrd_sz, 0 as GC_word))
+        go!(Vec::from_elem((l + wrd_sz - 1) / wrd_sz, 0 as GC_word))
     }
 }
 
@@ -123,9 +123,9 @@ pub trait BoehmTraced {
             BoehmTraced::indicate_ptr_words(dummy, vec);
             make_descriptor(vec.slice_to(num_words))
         } else {
-            let mut vec = vec::from_elem(num_words, false);
-            BoehmTraced::indicate_ptr_words(dummy, vec);
-            make_descriptor(vec)
+            let mut vec = Vec::from_elem(num_words, false);
+            BoehmTraced::indicate_ptr_words(dummy, vec.as_mut_slice());
+            make_descriptor(vec.as_slice())
         }
     }
 

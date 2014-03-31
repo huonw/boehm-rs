@@ -1,4 +1,4 @@
-extern mod boehm;
+extern crate boehm;
 use boehm::{init, Gc, heap_size};
 
 #[start]

@@ -1,4 +1,4 @@
-extern mod boehm;
+extern crate boehm;
 
 use std::mem;
 use std::cell::RefCell;
@@ -33,7 +33,7 @@ fn main(_: int, _: **u8) -> int {
     // traced precisely.
     let uint_ptrs = Gc::new(RefCell::new([0u, .. SIZE]));
     let mut cell = uint_ptrs.borrow().borrow_mut();
-    for (uint, ptr) in cell.get().mut_iter().zip(ptrs.iter()) {
+    for (uint, ptr) in cell.mut_iter().zip(ptrs.iter()) {
         *uint = ptr.unwrap().borrow() as *uint as uint;
     }
 

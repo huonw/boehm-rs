@@ -4,9 +4,10 @@
 
 use std::{libc, mem};
 use std::kinds::marker;
-use std::unstable::intrinsics;
+use std::intrinsics;
 
 #[allow(dead_code)]
+#[allow(non_camel_case_types)]
 pub mod ffi;
 
 pub mod tracing;

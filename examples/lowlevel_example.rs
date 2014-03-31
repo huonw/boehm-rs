@@ -1,4 +1,4 @@
-extern mod boehm;
+extern crate boehm;
 
 use boehm::ffi;
 use std::libc;
