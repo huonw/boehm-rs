@@ -1,4 +1,4 @@
-#[doc(hidden)];
+#![doc(hidden)]
 use std::{mem, cell};
 use tracing::{BoehmTraced, GcTracing, GC_WORDSZ};
 

@@ -1,4 +1,4 @@
-#[allow(dead_code)];
+#![allow(dead_code)]
 
 //! Precise GC on the heap.
 //!
@@ -59,9 +59,9 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
 /// That is, run Boehm in precise-on-the-heap mode.
 #[deriving(Clone)]
 pub struct GcTracing<T> {
-    priv ptr: *mut T,
-    priv mark: marker::NoSend
-    //priv force_managed: Option<@()>
+    ptr: *mut T,
+    mark: marker::NoSend
+    //force_managed: Option<@()>
 }
 
 impl<T: BoehmTraced> GcTracing<T> {

@@ -1,6 +1,6 @@
-#[crate_id="boehm#0.1"];
-#[crate_type="rlib"];
-#[feature(globs, macro_rules)];
+#![crate_id="boehm#0.1"]
+#![crate_type="rlib"]
+#![feature(globs, macro_rules)]
 
 use std::{libc, mem};
 use std::kinds::marker;
@@ -41,8 +41,8 @@ pub fn debug_dump() {
 /// A garbage collected pointer.
 #[deriving(Clone)]
 pub struct Gc<T> {
-    priv ptr: *mut T,
-    priv mark: marker::NoSend
+    ptr: *mut T,
+    mark: marker::NoSend
 }
 
 impl<T: 'static> Gc<T> {
