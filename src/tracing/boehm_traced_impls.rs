@@ -1,4 +1,4 @@
-#[doc(hidden)];
+#![doc(hidden)]
 use std::{mem, cell};
 use tracing::{BoehmTraced, GcTracing, GC_WORDSZ};
 
@@ -34,9 +34,9 @@ no_ptr! {
 }
 
 // paradoxically, these don't count as having GC pointer words.
-impl<T> BoehmTraced for *T {
+impl<T> BoehmTraced for *const T {
     #[inline]
-    fn indicate_ptr_words(_: Option<*T>, _: &mut [bool]) {}
+    fn indicate_ptr_words(_: Option<*const T>, _: &mut [bool]) {}
 }
 impl<T> BoehmTraced for *mut T {
     #[inline]
@@ -101,13 +101,13 @@ macro_rules! fixedvec_lots {
     (; $($n:tt),*) => { fixedvec!($($n),*) };
     ([$e:expr] $([$x:expr])* ; $($n:tt),*) => {
         // binary expansion
-        fixedvec_lots!($([$x])* ; $( (2 * $n + 1), (2 * $n) ),*)
+        fixedvec_lots!($([$x])* ; $( (2u * $n + 1u), (2u * $n) ),*)
     }
 }
 
 
 // generate tracing info for all the short fixed length vectors.
 // NB. this crashes rustdoc.
-fixedvec_lots!([1] [2] [4] [16] [32] [64]; 0)
+//fixedvec_lots!([1u] [2u] [4u] [16u] [32u] [64u]; 0)
 // and some long ones
-fixedvec!(100, 1000, 10_000, 100_000, 1_000_000)
+fixedvec!(100u, 1000u, 10_000u, 100_000u, 1_000_000u)

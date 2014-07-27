@@ -1,8 +1,8 @@
-#[crate_id="boehm#0.1"];
-#[crate_type="rlib"];
-#[feature(globs, macro_rules)];
+#![crate_type="rlib"]
+#![feature(globs, macro_rules)]
 
-use std::{libc, mem};
+extern crate libc;
+use std::mem;
 use std::kinds::marker;
 use std::intrinsics;
 
@@ -40,9 +40,10 @@ pub fn debug_dump() {
 
 /// A garbage collected pointer.
 #[deriving(Clone)]
+#[allow(raw_pointer_deriving)]
 pub struct Gc<T> {
-    priv ptr: *mut T,
-    priv mark: marker::NoSend
+    ptr: *mut T,
+    mark: marker::NoSend
 }
 
 impl<T: 'static> Gc<T> {
@@ -50,7 +51,7 @@ impl<T: 'static> Gc<T> {
         unsafe {
             let size = mem::size_of::<T>() as libc::size_t;
             let p = if cfg!(debug) {
-                ffi::GC_debug_malloc(size, bytes!("Gc", 0).as_ptr() as *i8, 0)
+                ffi::GC_debug_malloc(size, b"Gc\x00".as_ptr() as *const i8, 0)
             } else {
                 ffi::GC_malloc(size)
             } as *mut T;

@@ -1,0 +1,5 @@
+[package]
+
+name = "boehm-rs"
+version = "0.1.0"
+authors = ["Huon Wilson"]

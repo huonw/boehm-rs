@@ -1,12 +1,15 @@
-#[allow(dead_code)];
+#![allow(dead_code)]
+#![allow(non_snake_case_functions)]
 
 //! Precise GC on the heap.
 //!
 //! Very slow.
 
+use libc;
+
 use ffi;
 use ffi::GC_word;
-use std::{mem, libc};
+use std::{mem};
 use std::kinds::marker;
 use std::intrinsics;
 
@@ -58,10 +61,11 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
 ///
 /// That is, run Boehm in precise-on-the-heap mode.
 #[deriving(Clone)]
+#[allow(raw_pointer_deriving)]
 pub struct GcTracing<T> {
-    priv ptr: *mut T,
-    priv mark: marker::NoSend
-    //priv force_managed: Option<@()>
+    ptr: *mut T,
+    mark: marker::NoSend
+    // force_managed: Option<@()>
 }
 
 impl<T: BoehmTraced> GcTracing<T> {
@@ -76,7 +80,7 @@ impl<T: BoehmTraced> GcTracing<T> {
             let size = mem::size_of::<T>() as libc::size_t;
 
             let p = if cfg!(debug) {
-                ffi::GC_debug_malloc(size, bytes!("GcTracing", 0).as_ptr() as *i8, 0)
+                ffi::GC_debug_malloc(size, b"GcTracing\x00".as_ptr() as *const i8, 0)
             } else {
                 ffi::GC_malloc_explicitly_typed(size,
                                                 BoehmTraced::get_tracing_descr(None::<T>))

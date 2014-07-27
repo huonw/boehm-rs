@@ -5,3 +5,4 @@ tracing_example_conservative
 *.so
 *.d
 *.s
+target

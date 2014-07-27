@@ -1,4 +1,4 @@
-extern crate boehm;
+extern crate boehm = "boehm-rs";
 
 use std::mem;
 use std::cell::RefCell;
@@ -12,7 +12,7 @@ use boehm::Gc;
 static SIZE: uint = 100_000;
 
 #[start]
-fn main(_: int, _: **u8) -> int {
+fn main(_: int, _: *const *const u8) -> int {
     boehm::init();
 
     // allocate a pile of pointers (we have to use a stack vector
@@ -34,7 +34,7 @@ fn main(_: int, _: **u8) -> int {
     let uint_ptrs = Gc::new(RefCell::new([0u, .. SIZE]));
     let mut cell = uint_ptrs.borrow().borrow_mut();
     for (uint, ptr) in cell.mut_iter().zip(ptrs.iter()) {
-        *uint = ptr.unwrap().borrow() as *uint as uint;
+        *uint = ptr.unwrap().borrow() as *const uint as uint;
     }
 
     // this should do nothing, since we have one or two references to
