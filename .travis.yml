@@ -1,7 +1,6 @@
-before_install:
-  - yes | sudo add-apt-repository ppa:hansjorg/rust
-  - sudo apt-get update
 install:
-  - sudo apt-get install rust-nightly libgc-dev libgc1c2
+  - curl http://www.rust-lang.org/rustup.sh | sudo sh -
+  - sudo apt-get install libgc-dev libgc1c2
 script:
-  - make
+  - cargo build
+  - cargo test
