@@ -1,5 +1,5 @@
 install:
-  - curl http://www.rust-lang.org/rustup.sh | sudo sh -
+  - curl http://static.rust-lang.org/rustup.sh | sudo sh -
   - sudo apt-get install libgc-dev libgc1c2
 script:
   - cargo build

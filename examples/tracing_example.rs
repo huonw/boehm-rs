@@ -5,7 +5,7 @@ use std::cell::RefCell;
 
 // allow comparison between the precise and conservative modes.
 #[cfg(not(conservative))]
-use Gc = boehm::tracing::GcTracing;
+use boehm::tracing::GcTracing as Gc;
 #[cfg(conservative)]
 use boehm::Gc;
 
