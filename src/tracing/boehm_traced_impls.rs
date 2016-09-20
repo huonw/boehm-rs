@@ -25,8 +25,8 @@ macro_rules! no_ptr {
 }
 
 no_ptr! {
-    int, i8, i16, i32, i64,
-    uint, u8, u16, u32, u64,
+    isize, i8, i16, i32, i64,
+    usize, u8, u16, u32, u64,
 
     f32, f64,
 
@@ -49,7 +49,7 @@ impl<T: BoehmTraced> BoehmTraced for cell::RefCell<T> {
     fn indicate_ptr_words(_dummy: Option<cell::RefCell<T>>, words: &mut [bool]) {
         let l = words.len();
         // the last word is not a pointer, and is not part of the `T`.
-        BoehmTraced::indicate_ptr_words(None::<T>, words.mut_slice_to(l - 1));
+        BoehmTraced::indicate_ptr_words(None::<T>, &mut words[..(l - 1)]);
     }
 }
 
@@ -62,7 +62,7 @@ impl<T: BoehmTraced> BoehmTraced for Option<T> {
 
         if discr_size * 8 >= GC_WORDSZ() {
             // we have a proper discriminant, so T might contain pointers
-            BoehmTraced::indicate_ptr_words(None::<T>, words.mut_slice_from(1))
+            BoehmTraced::indicate_ptr_words(None::<T>, &mut words[1..])
         } else {
             // we don't have a big discriminant, so we're either a
             // nullable pointer, or a small non-word aligned type. (In
@@ -79,15 +79,15 @@ impl<T: BoehmTraced> BoehmTraced for Option<T> {
 macro_rules! fixedvec {
     ($($n:expr),*) => {
         $(
-            impl<T: BoehmTraced> BoehmTraced for [T, .. $n] {
-                fn indicate_ptr_words(_dummy: Option<[T, .. $n]>, words: &mut [bool]) {
+            impl<T: BoehmTraced> BoehmTraced for [T; $n] {
+                fn indicate_ptr_words(_dummy: Option<[T; $n]>, words: &mut [bool]) {
                     if $n == 0 { return }
 
-                    let bits_per_step = 8 * mem::size_of::<[T, .. $n]>() / $n;
+                    let bits_per_step = 8 * mem::size_of::<[T; $n]>() / $n;
                     let words_per_step = bits_per_step / GC_WORDSZ();
                     if words_per_step > 0 {
-                        for chunk in words.mut_slice_to(words_per_step * $n)
-                            .mut_chunks(words_per_step) {
+                        for chunk in &mut words[..words_per_step * $n]
+                            .chunks_mut(words_per_step) {
                             BoehmTraced::indicate_ptr_words(None::<T>, chunk)
                         }
                     }
@@ -101,13 +101,17 @@ macro_rules! fixedvec_lots {
     (; $($n:tt),*) => { fixedvec!($($n),*) };
     ([$e:expr] $([$x:expr])* ; $($n:tt),*) => {
         // binary expansion
-        fixedvec_lots!($([$x])* ; $( (2u * $n + 1u), (2u * $n) ),*)
+        fixedvec_lots!($([$x])* ; $( (2usize * $n + 1usize), (2usize * $n) ),*)
     }
 }
 
 
 // generate tracing info for all the short fixed length vectors.
 // NB. this crashes rustdoc.
-//fixedvec_lots!([1u] [2u] [4u] [16u] [32u] [64u]; 0)
+// fixedvec_lots!([1u] [2u] [4u] [16u] [32u] [64u]; 0)
 // and some long ones
-fixedvec!(100u, 1000u, 10_000u, 100_000u, 1_000_000u)
+fixedvec!(100usize,
+          1000usize,
+          10_000usize,
+          100_000usize,
+          1_000_000usize);
