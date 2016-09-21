@@ -1,4 +1,5 @@
-extern crate boehm = "boehm-rs";
+#![feature(start)]
+extern crate boehm;
 extern crate libc;
 use boehm::ffi;
 
@@ -6,11 +7,11 @@ use boehm::ffi;
 // a straight port of http://www.hpl.hp.com/personal/Hans_Boehm/gc/simple_example.html
 
 #[start]
-fn main(_: int, _: *const *const u8) -> int {
+fn main(_: isize, _: *const *const u8) -> isize {
     unsafe {
         ffi::GC_init();
 
-        for i in range(0u, 10000000) {
+        for i in 0..10000000 {
             let p = ffi::GC_malloc(8) as *mut *const i64;
             let q = ffi::GC_malloc_atomic(8) as *const i64;
             assert!((*p).is_null());

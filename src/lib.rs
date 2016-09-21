@@ -1,9 +1,8 @@
 #![crate_type="rlib"]
-#![feature(globs, macro_rules)]
+#![feature(core_intrinsics)]
 
 extern crate libc;
 use std::mem;
-use std::kinds::marker;
 use std::intrinsics;
 
 #[allow(dead_code)]
@@ -20,30 +19,34 @@ pub mod tracing;
 /// FIXME: this should be doing the full equivalent of the GC_INIT()
 /// macro.
 pub fn init() {
-    unsafe { ffi::GC_init(); }
+    unsafe {
+        ffi::GC_init();
+    }
 }
 
 /// Number of bytes in the garbage collection heap.
-pub fn heap_size() -> uint {
-    unsafe { ffi::GC_get_heap_size() as uint }
+pub fn heap_size() -> usize {
+    unsafe { ffi::GC_get_heap_size() as usize }
 }
 
 /// Force a garbage collection.
 pub fn collect() {
-    unsafe { ffi::GC_gcollect(); }
+    unsafe {
+        ffi::GC_gcollect();
+    }
 }
 
 /// Dump some debugging/diagnostic information to stdout.
 pub fn debug_dump() {
-    unsafe { ffi::GC_dump(); }
+    unsafe {
+        ffi::GC_dump();
+    }
 }
 
 /// A garbage collected pointer.
-#[deriving(Clone)]
-#[allow(raw_pointer_deriving)]
+#[derive(Clone)]
 pub struct Gc<T> {
     ptr: *mut T,
-    mark: marker::NoSend
 }
 
 impl<T: 'static> Gc<T> {
@@ -56,16 +59,14 @@ impl<T: 'static> Gc<T> {
                 ffi::GC_malloc(size)
             } as *mut T;
             if p.is_null() {
-                fail!("Could not allocate")
+                panic!("Could not allocate")
             }
             intrinsics::move_val_init(&mut *p, value);
-            Gc { ptr: p, mark: marker::NoSend }
+            Gc { ptr: p }
         }
     }
 
     pub fn borrow<'r>(&'r self) -> &'r T {
-        unsafe {
-            &*self.ptr
-        }
+        unsafe { &*self.ptr }
     }
 }

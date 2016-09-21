@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-#![allow(non_snake_case_functions)]
+#![allow(non_snake_case)]
 
 //! Precise GC on the heap.
 //!
@@ -9,27 +9,32 @@ use libc;
 
 use ffi;
 use ffi::GC_word;
-use std::{mem};
-use std::kinds::marker;
+use std::mem;
 use std::intrinsics;
 
 // macros from gc_typed.h
 
 /// The size of the words understood by the GC, in bits.
 #[inline]
-pub fn GC_WORDSZ() -> uint { 8 * mem::size_of::<GC_word>() }
+pub fn GC_WORDSZ() -> usize {
+    8 * mem::size_of::<GC_word>()
+}
 
-fn GC_get_bit(bm: &[GC_word], index: uint) -> bool {
+fn GC_get_bit(bm: &[GC_word], index: usize) -> bool {
     let wrd_sz = GC_WORDSZ();
     ((bm[index / wrd_sz] >> (index % wrd_sz)) & 1) == 1
 }
-fn GC_set_bit(bm: &mut [GC_word], index: uint) {
+fn GC_set_bit(bm: &mut [GC_word], index: usize) {
     let wrd_sz = GC_WORDSZ();
     bm[index / wrd_sz] |= 1 << (index % wrd_sz);
 }
-fn GC_WORD_LEN<T>() -> uint { mem::size_of::<T>() / mem::size_of::<GC_word>() }
+fn GC_WORD_LEN<T>() -> usize {
+    mem::size_of::<T>() / mem::size_of::<GC_word>()
+}
 
-fn GC_BITMAP_SIZE<T>() -> uint { (GC_WORD_LEN::<T>() + GC_WORDSZ() - 1) / GC_WORDSZ() }
+fn GC_BITMAP_SIZE<T>() -> usize {
+    (GC_WORD_LEN::<T>() + GC_WORDSZ() - 1) / GC_WORDSZ()
+}
 
 /// Construct a tracing descriptor out of the `bitmap`, which should
 /// be true for each word that is possibly a pointer.
@@ -41,18 +46,18 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
         ($cmprs:expr) => { {
             let mut compressed = $cmprs;
             for (word_idx, &is_ptr) in bitmap.iter().enumerate() {
-                if is_ptr { GC_set_bit(compressed.as_mut_slice(), word_idx) }
+                if is_ptr { GC_set_bit(&mut compressed, word_idx) }
             }
             unsafe {
-                ffi::GC_make_descriptor(compressed.as_mut_ptr(), l as GC_word)
+                ffi::GC_make_descriptor(compressed.as_mut_ptr(), l)
             }
         } }
     );
 
     if l < wrd_sz * 2 {
-        go!([0 as GC_word, .. 2])
+        go!([0 as GC_word; 2])
     } else {
-        go!(Vec::from_elem((l + wrd_sz - 1) / wrd_sz, 0 as GC_word))
+        go!(vec![0 as GC_word; (l + wrd_sz - 1) / wrd_sz])
     }
 }
 
@@ -60,12 +65,9 @@ pub fn make_descriptor(bitmap: &[bool]) -> ffi::GC_descr {
 /// things could possibly be pointers, and what can just be ignored.
 ///
 /// That is, run Boehm in precise-on-the-heap mode.
-#[deriving(Clone)]
-#[allow(raw_pointer_deriving)]
+#[derive(Clone, Copy)]
 pub struct GcTracing<T> {
     ptr: *mut T,
-    mark: marker::NoSend
-    // force_managed: Option<@()>
 }
 
 impl<T: BoehmTraced> GcTracing<T> {
@@ -82,27 +84,20 @@ impl<T: BoehmTraced> GcTracing<T> {
             let p = if cfg!(debug) {
                 ffi::GC_debug_malloc(size, b"GcTracing\x00".as_ptr() as *const i8, 0)
             } else {
-                ffi::GC_malloc_explicitly_typed(size,
-                                                BoehmTraced::get_tracing_descr(None::<T>))
+                ffi::GC_malloc_explicitly_typed(size, BoehmTraced::get_tracing_descr(None::<T>))
             } as *mut T;
 
             if p.is_null() {
-                fail!("Could not allocate")
+                panic!("Could not allocate")
             }
             intrinsics::move_val_init(&mut *p, value);
-            GcTracing {
-                ptr: p,
-                mark: marker::NoSend
-                //force_managed: None
-            }
+            GcTracing { ptr: p }
         }
     }
 
     #[inline]
     pub fn borrow<'r>(&'r self) -> &'r T {
-        unsafe {
-            &*self.ptr
-        }
+        unsafe { &*self.ptr }
     }
 }
 
@@ -114,7 +109,7 @@ impl<T: BoehmTraced> GcTracing<T> {
 /// alignment of fields and extract (for example) the enum
 /// optimisation that have occurred (and even then, they're likely to
 /// no be correct).
-pub trait BoehmTraced {
+pub trait BoehmTraced: Sized {
     /// Construct the `GC_descr` of `Self`. This should not be
     /// overriden.
     fn get_tracing_descr(dummy: Option<Self>) -> ffi::GC_descr {
@@ -123,13 +118,13 @@ pub trait BoehmTraced {
         let num_words = sz / wrd_sz;
 
         if num_words < 16 {
-            let mut vec = [false, .. 16];
-            BoehmTraced::indicate_ptr_words(dummy, vec);
-            make_descriptor(vec.slice_to(num_words))
+            let mut vec = [false; 16];
+            BoehmTraced::indicate_ptr_words(dummy, &mut vec);
+            make_descriptor(&vec[..num_words])
         } else {
-            let mut vec = Vec::from_elem(num_words, false);
+            let mut vec = vec![false; num_words];
             BoehmTraced::indicate_ptr_words(dummy, vec.as_mut_slice());
-            make_descriptor(vec.as_slice())
+            make_descriptor(&vec[..])
         }
     }
 

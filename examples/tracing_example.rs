@@ -1,4 +1,5 @@
-extern crate boehm = "boehm-rs";
+#![feature(start)]
+extern crate boehm;
 
 use std::mem;
 use std::cell::RefCell;
@@ -9,16 +10,16 @@ use boehm::tracing::GcTracing as Gc;
 #[cfg(conservative)]
 use boehm::Gc;
 
-static SIZE: uint = 100_000;
+const SIZE: usize = 100_000;
 
 #[start]
-fn main(_: int, _: *const *const u8) -> int {
+fn main(_: isize, _: *const *const u8) -> isize {
     boehm::init();
 
     // allocate a pile of pointers (we have to use a stack vector
     // rather than a ~[] because ~[] isn't a Gc root (yet))
-    let mut ptrs = [None::<Gc<uint>>, .. SIZE];
-    for (i, ptr) in ptrs.mut_iter().enumerate() {
+    let mut ptrs: [Option<Gc<usize>>; SIZE] = [None; SIZE];
+    for (i, ptr) in ptrs.iter_mut().enumerate() {
         *ptr = Some(Gc::new(i));
     }
 
@@ -31,10 +32,10 @@ fn main(_: int, _: *const *const u8) -> int {
     // Since Boehm is conservative on the stack (even in gc_typed.h
     // mode), we place the integers inside a Gc so that it can be
     // traced precisely.
-    let uint_ptrs = Gc::new(RefCell::new([0u, .. SIZE]));
+    let uint_ptrs = Gc::new(RefCell::new([0; SIZE]));
     let mut cell = uint_ptrs.borrow().borrow_mut();
-    for (uint, ptr) in cell.mut_iter().zip(ptrs.iter()) {
-        *uint = ptr.unwrap().borrow() as *const uint as uint;
+    for (uint, ptr) in cell.iter_mut().zip(ptrs.iter()) {
+        *uint = ptr.unwrap().borrow() as *const usize as usize;
     }
 
     // this should do nothing, since we have one or two references to
@@ -45,12 +46,12 @@ fn main(_: int, _: *const *const u8) -> int {
     boehm::debug_dump();
 
     // clear the on-stack pointers that we used to allocate with
-    // originally (set_memory rather than just writing `None`s, since
+    // originally (write_bytes rather than just writing `None`s, since
     // the latter could just set the discriminant to 0, and not modify
     // the actuall pointer bit, which would leave the values on the
     // stack and confuse Boehm).
     unsafe {
-        std::ptr::set_memory(ptrs.as_mut_ptr() as *mut u8, 0, mem::size_of_val(&ptrs));
+        std::ptr::write_bytes(ptrs.as_mut_ptr() as *mut u8, 0, mem::size_of_val(&ptrs));
     }
 
     // now `uint_ptrs` are the only "reference" to the first lot of
